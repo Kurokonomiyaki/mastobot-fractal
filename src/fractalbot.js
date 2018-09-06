@@ -3,7 +3,7 @@ import Fs from 'fs';
 
 import { getSettings } from './settings';
 import { computeJulia } from './julia';
-import { getRandomParameters } from './utils';
+import { getRandomParameters, makeThrottledQueued } from './utils';
 
 const replyToToot = async ({ id }, { acct, avatar_static }, instance, settings) => {
   // generate the image
@@ -14,6 +14,10 @@ const replyToToot = async ({ id }, { acct, avatar_static }, instance, settings) 
   const response = await instance.post('media', {
     file: Fs.createReadStream(outputPath),
   });
+  if (response.data == null || response.data.id == null) {
+    console.warn('Error while uploading image', response.data || response);
+    return;
+  }
   const mediaId = response.data.id;
 
   // send the reply
@@ -28,9 +32,16 @@ const replyToToot = async ({ id }, { acct, avatar_static }, instance, settings) 
     media_ids: [ mediaId ],
   }, settings.tootOptions));
 
-  // delete the generated image
-  Fs.unlinkSync(outputPath);
+  Fs.unlinkSync(outputPath); // delete the generated image
 };
+
+const enqueue = makeThrottledQueued((toot, author, instance, settings) => {
+  replyToToot(toot, author, instance, settings).then(() => {
+    console.log('Reply sent', author.acct);
+  }).catch((err) => {
+    console.warn('Error while replying to toot', toot.content, author.acct, err);
+  });
+});
 
 const onMessageReceived = (settings, instance, message) => {
   const { event, data } = message;
@@ -43,15 +54,9 @@ const onMessageReceived = (settings, instance, message) => {
     }
 
     console.log('Request received', author.acct);
-    replyToToot(toot, author, instance, settings).then(() => {
-      console.log('Reply sent', author.acct);
-    }).catch((err) => {
-      console.log('Error while replying to toot', toot.content, author.acct, err);
-    });
+    enqueue(toot, author, instance, settings);
   }
 };
-
-
 
 export const startBot = () => {
   const settings = getSettings(`${__dirname}/../settings.json`);

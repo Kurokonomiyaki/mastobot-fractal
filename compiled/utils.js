@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.mkdirs = exports.saveImage = exports.readImage = exports.createImage = exports.getRandomParameters = exports.mapDomainToPixel = exports.mapPixelToDomain = undefined;
+exports.makeThrottledQueued = exports.mkdirs = exports.saveImage = exports.readImage = exports.createImage = exports.getRandomParameters = exports.mapDomainToPixel = exports.mapPixelToDomain = undefined;
 
 var _regenerator = require('babel-runtime/regenerator');
 
@@ -156,4 +156,31 @@ var mkdirs = exports.mkdirs = function mkdirs(dir) {
     }
     return curDir;
   }, initDir);
+};
+
+var makeThrottledQueued = exports.makeThrottledQueued = function makeThrottledQueued(f) {
+  var delay = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 10000;
+
+  var lastTaken = 0;
+  return function () {
+    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    var delta = Date.now() - lastTaken;
+    if (delta > 0 && delta < delay) {
+      lastTaken = Date.now() + delta;
+      setTimeout(function () {
+        return f.apply(undefined, args);
+      }, delta);
+    } else if (delta < 0) {
+      lastTaken += delay;
+      setTimeout(function () {
+        return f.apply(undefined, args);
+      }, Math.abs(delta));
+    } else {
+      lastTaken = Date.now();
+      f.apply(undefined, args);
+    }
+  };
 };

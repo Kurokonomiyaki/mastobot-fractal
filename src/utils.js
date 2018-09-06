@@ -80,3 +80,20 @@ export const mkdirs = (dir) => {
    return curDir;
  }, initDir);
 };
+
+export const makeThrottledQueued = (f, delay = 10000) => {
+  let lastTaken = 0;
+  return (...args) => {
+    const delta = Date.now() - lastTaken;
+    if (delta > 0 && delta < delay) {
+      lastTaken = Date.now() + delta;
+      setTimeout(() => f(...args), delta);
+    } else if (delta < 0) {
+      lastTaken += delay;
+      setTimeout(() => f(...args), Math.abs(delta));
+    } else {
+      lastTaken = Date.now();
+      f(...args);
+    }
+  };
+};

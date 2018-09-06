@@ -57,6 +57,16 @@ var replyToToot = function () {
 
           case 6:
             response = _context.sent;
+
+            if (!(response.data == null || response.data.id == null)) {
+              _context.next = 10;
+              break;
+            }
+
+            console.warn('Error while uploading image', response.data || response);
+            return _context.abrupt('return');
+
+          case 10:
             mediaId = response.data.id;
 
             // send the reply
@@ -74,10 +84,9 @@ var replyToToot = function () {
               media_ids: [mediaId]
             }, settings.tootOptions));
 
-            // delete the generated image
-            _fs2.default.unlinkSync(outputPath);
+            _fs2.default.unlinkSync(outputPath); // delete the generated image
 
-          case 13:
+          case 16:
           case 'end':
             return _context.stop();
         }
@@ -89,6 +98,14 @@ var replyToToot = function () {
     return _ref.apply(this, arguments);
   };
 }();
+
+var enqueue = (0, _utils.makeThrottledQueued)(function (toot, author, instance, settings) {
+  replyToToot(toot, author, instance, settings).then(function () {
+    console.log('Reply sent', author.acct);
+  }).catch(function (err) {
+    console.warn('Error while replying to toot', toot.content, author.acct, err);
+  });
+});
 
 var onMessageReceived = function onMessageReceived(settings, instance, message) {
   var event = message.event,
@@ -103,11 +120,7 @@ var onMessageReceived = function onMessageReceived(settings, instance, message) 
     }
 
     console.log('Request received', author.acct);
-    replyToToot(toot, author, instance, settings).then(function () {
-      console.log('Reply sent', author.acct);
-    }).catch(function (err) {
-      console.log('Error while replying to toot', toot.content, author.acct, err);
-    });
+    enqueue(toot, author, instance, settings);
   }
 };
 
