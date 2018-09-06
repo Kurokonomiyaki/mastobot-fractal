@@ -1,0 +1,13 @@
+[Unit]
+Description=mastobot-fractal
+After=network.target
+
+[Service]
+Type=simple
+User=<specify user here>
+ExecStart=/usr/bin/node <path to the index.js of the bot, e.g., /<some path>/mastobot-fractal/compiled/index.js>
+TimeoutSec=15
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,32 @@
+{
+  "name": "mastobot-fractal",
+  "version": "0.0.1",
+  "description": "A bot that fractalizes things",
+  "main": "compiled/index.js",
+  "scripts": {
+    "compile": "node ./node_modules/babel-cli/bin/babel.js src --out-dir compiled",
+    "token": "node ./node_modules/mastodon-api-token/index-compiled.js"
+  },
+  "author": "Kuro",
+  "license": "",
+  "dependencies": {
+    "babel-runtime": "6.26.0",
+    "complex.js": "2.0.11",
+    "he": "1.1.1",
+    "htmlparser": "1.7.7",
+    "jimp": "0.4.0",
+    "mastodon-api": "1.3.0",
+    "mastodon-api-token": "git+https://github.com/kurokonomiyaki/mastodon-api-token.git",
+    "md5": "2.2.1",
+    "merge-options": "1.0.0"
+  },
+  "devDependencies": {
+    "babel-cli": "6.24.1",
+    "babel-plugin-transform-async-to-generator": "6.24.1",
+    "babel-plugin-transform-runtime": "6.23.0",
+    "babel-preset-es2015": "6.24.1",
+    "eslint": "4.8.0",
+    "eslint-config-airbnb": "16.0.0",
+    "eslint-plugin-import": "2.7.0"
+  }
+}
