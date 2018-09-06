@@ -67,7 +67,7 @@ var getRandomParameters = exports.getRandomParameters = function getRandomParame
   var cx = 1 - parseInt(hash.substring(0, 2), 16) / 127.5;
   var cy = 1 - parseInt(hash.substring(2, 4), 16) / 127.5;
   var d = 2 + Math.round(3 * parseInt(hash.substring(4, 6), 16) / 255);
-  var trapSize = 0.5 + parseInt(hash.substring(6, 8), 16) / 510;
+  var trapSize = 0.75 + parseInt(hash.substring(6, 8), 16) / 510;
 
   var trapType = 'square';
   if (parseInt(hash.substring(6, 7), 16) % 2 === 1) {

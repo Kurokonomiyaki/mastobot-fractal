@@ -98,9 +98,9 @@ var onMessageReceived = function onMessageReceived(settings, instance, message) 
     var toot = data.status;
     var author = data.account;
 
-    /*if (toot.in_reply_to_id != null || toot.in_reply_to_account_id != null) {
+    if (toot.in_reply_to_id != null || toot.in_reply_to_account_id != null) {
       return;
-    }*/
+    }
 
     console.log('Request received', author.acct);
     replyToToot(toot, author, instance, settings).then(function () {
