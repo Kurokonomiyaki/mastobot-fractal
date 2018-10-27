@@ -37,7 +37,7 @@ export const computeJulia = async (account, avatarUri, params, width = 1024, hei
 
   const outputFile = md5(`${account}${new Date().getTime()}`);
   const outputPath = `${__dirname}/../tmp/${outputFile}.png`;
-  mkdirs(Path.dirname(outputFile));
+  mkdirs(Path.dirname(outputPath));
 
   await saveImage(image, outputPath);
 

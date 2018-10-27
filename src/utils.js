@@ -2,6 +2,13 @@ import md5 from 'md5';
 import Fs from 'fs';
 import Path from 'path';
 import Jimp from 'jimp';
+import Complex from 'complex.js';
+
+
+export const IdentityFunc = (z) => z;
+
+export const BI_UNIT_DOMAIN = { xmin: -1, xmax: 1, ymin: -1, ymax: 1 };
+export const UNIT_DOMAIN = { xmin: 0, xmax: 1, ymin: 0, ymax: 1 };
 
 export const mapPixelToDomain = (x, y, width, height, domain) => {
   const domainWidth = domain.xmax - domain.xmin;
@@ -70,6 +77,20 @@ export const saveImage = async (image, path) => {
   return image.writeAsync(path);
 };
 
+export const saveImageBuffer = async (buffer, width, height, path) => {
+  return new Promise((resolve, reject) => {
+    new Jimp({ data: buffer, width, height }, (err, image) => {
+      if (err) {
+        reject(err);
+      } else {
+        saveImage(image, path)
+          .then(() => resolve(image))
+          .catch(reject);
+      }
+    });
+  });
+};
+
 export const mkdirs = (dir) => {
  const initDir = Path.isAbsolute(dir) ? Path.sep : '';
  dir.split(Path.sep).reduce((parentDir, childDir) => {
@@ -81,7 +102,7 @@ export const mkdirs = (dir) => {
  }, initDir);
 };
 
-export const makeThrottledQueued = (f, delay = 10000) => {
+export const makeQueuedFunction = (f, delay = 10000) => {
   let lastTaken = 0;
   return (...args) => {
     const delta = Date.now() - lastTaken;
@@ -95,5 +116,49 @@ export const makeThrottledQueued = (f, delay = 10000) => {
       lastTaken = Date.now();
       f(...args);
     }
+  };
+};
+
+export const makeQueue = (delay = 10000) => {
+  return makeQueuedFunction((f, ...args) => f(...args), delay);
+};
+
+export const clamp = (x, min, max) => {
+  return Math.max(min, Math.min(x, max));
+};
+
+export const clampInt = (x, min, max) => {
+  return Math.trunc(clamp(x, min, max));
+};
+
+export const randomScalar = (min = -1, max = 1) => {
+  return Math.random() * (max - min) + min;
+};
+export const randomInteger = (min, max) => {
+  return Math.floor(Math.random() * (max - min) + min);
+};
+export const randomComplex = (reMin = -1, reMax = 1, imMin = -1, imMax = 1) => {
+  return new Complex(randomScalar(reMin, reMax), randomScalar(imMin, imMax));
+};
+export const randomArray = (size, min = -1, max = 1) => {
+  const arr = new Array(size);
+  for (let i = 0; i < size; i++) {
+    arr[i] = randomScalar(min, max);
+  }
+  return arr;
+};
+export const randomRgbColor = () => {
+  return randomArray(3, 0, 255);
+};
+export const pickRandom = (arr) => {
+  return arr[Math.trunc(Math.random() * arr.length)];
+};
+
+export const scaleDomain = (domain, scale = 1) => {
+  return {
+    xmin: domain.xmin * scale,
+    ymin: domain.ymin * scale,
+    xmax: domain.xmax * scale,
+    ymax: domain.ymax * scale,
   };
 };

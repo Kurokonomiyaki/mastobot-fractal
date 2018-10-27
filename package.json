@@ -5,16 +5,20 @@
   "main": "compiled/index.js",
   "scripts": {
     "compile": "node ./node_modules/babel-cli/bin/babel.js src --out-dir compiled",
-    "token": "node ./node_modules/mastodon-api-token/index-compiled.js"
+    "token": "node ./node_modules/mastodon-api-token/index-compiled.js",
+    "execute": "babel-node"
   },
   "author": "Kuro",
   "license": "",
   "dependencies": {
     "babel-runtime": "6.26.0",
     "complex.js": "2.0.11",
+    "d3-interpolate": "1.2.0",
+    "d3-random": "1.1.0",
+    "google-palette": "1.1.0",
     "he": "1.1.1",
     "htmlparser": "1.7.7",
-    "jimp": "0.4.0",
+    "jimp": "0.5.6",
     "mastodon-api": "1.3.0",
     "mastodon-api-token": "git+https://github.com/kurokonomiyaki/mastodon-api-token.git",
     "md5": "2.2.1",
