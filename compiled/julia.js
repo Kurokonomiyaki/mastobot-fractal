@@ -83,7 +83,7 @@ var computeJulia = exports.computeJulia = function () {
             outputFile = (0, _md2.default)('' + account + new Date().getTime());
             outputPath = __dirname + '/../tmp/' + outputFile + '.png';
 
-            (0, _utils.mkdirs)(_path2.default.dirname(outputFile));
+            (0, _utils.mkdirs)(_path2.default.dirname(outputPath));
 
             _context.next = 17;
             return (0, _utils.saveImage)(image, outputPath);

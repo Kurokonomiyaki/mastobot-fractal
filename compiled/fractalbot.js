@@ -3,7 +3,11 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.startBot = undefined;
+exports.startBot = exports.publishImage = undefined;
+
+var _keys = require('babel-runtime/core-js/object/keys');
+
+var _keys2 = _interopRequireDefault(_keys);
 
 var _regenerator = require('babel-runtime/regenerator');
 
@@ -25,13 +29,25 @@ var _fs = require('fs');
 
 var _fs2 = _interopRequireDefault(_fs);
 
+var _path = require('path');
+
+var _path2 = _interopRequireDefault(_path);
+
+var _modules = require('./modules');
+
+var ImageMakers = _interopRequireWildcard(_modules);
+
 var _settings = require('./settings');
 
 var _julia = require('./julia');
 
 var _utils = require('./utils');
 
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var enqueue = (0, _utils.makeQueue)();
 
 var replyToToot = function () {
   var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(_ref2, _ref3, instance, settings) {
@@ -63,7 +79,7 @@ var replyToToot = function () {
               break;
             }
 
-            console.warn('Error while uploading image', response.data || response);
+            console.warn('Error while uploading image', response.data || response, outputPath);
             return _context.abrupt('return');
 
           case 10:
@@ -99,14 +115,6 @@ var replyToToot = function () {
   };
 }();
 
-var enqueue = (0, _utils.makeThrottledQueued)(function (toot, author, instance, settings) {
-  replyToToot(toot, author, instance, settings).then(function () {
-    console.log('Reply sent', author.acct);
-  }).catch(function (err) {
-    console.warn('Error while replying to toot', toot.content, author.acct, err);
-  });
-});
-
 var onMessageReceived = function onMessageReceived(settings, instance, message) {
   var event = message.event,
       data = message.data;
@@ -120,9 +128,91 @@ var onMessageReceived = function onMessageReceived(settings, instance, message) 
     }
 
     console.log('Request received', author.acct);
-    enqueue(toot, author, instance, settings);
+    enqueue(function () {
+      replyToToot(toot, author, instance, settings).then(function () {
+        console.log('Reply sent', author.acct);
+      }).catch(function (err) {
+        console.warn('Error while replying to toot', toot.content, author.acct, err);
+      });
+    });
   }
 };
+
+var publishing = false;
+var publishImage = exports.publishImage = function () {
+  var _ref4 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(instance, settings) {
+    var maker, buffer, outputPath, response, mediaId;
+    return _regenerator2.default.wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            if (!(publishing === true)) {
+              _context2.next = 2;
+              break;
+            }
+
+            return _context2.abrupt('return');
+
+          case 2:
+            publishing = true;
+
+            maker = ImageMakers[(0, _utils.pickRandom)((0, _keys2.default)(ImageMakers))];
+            _context2.next = 6;
+            return maker(2048, 2048);
+
+          case 6:
+            buffer = _context2.sent;
+            outputPath = __dirname + '/../img/image-' + new Date().getTime() + '.png';
+
+            (0, _utils.mkdirs)(_path2.default.dirname(outputPath));
+
+            _context2.next = 11;
+            return (0, _utils.saveImageBuffer)(buffer, 2048, 2048, outputPath);
+
+          case 11:
+            console.log('Generated', outputPath);
+
+            // upload the generated image
+            _context2.next = 14;
+            return instance.post('media', {
+              file: _fs2.default.createReadStream(outputPath)
+            });
+
+          case 14:
+            response = _context2.sent;
+
+            if (!(response.data == null || response.data.id == null)) {
+              _context2.next = 18;
+              break;
+            }
+
+            console.warn('Error while uploading generated image', response.data || response, outputPath);
+            return _context2.abrupt('return');
+
+          case 18:
+            mediaId = response.data.id;
+
+            // send the toot
+
+            instance.post('statuses', (0, _assign2.default)({
+              status: '(∩ ⚆ ᗜ ⚆ )⊃━✧.༸༓⁺ﾟ',
+              media_ids: [mediaId]
+            }, settings.tootOptions));
+
+            publishing = false;
+
+          case 21:
+          case 'end':
+            return _context2.stop();
+        }
+      }
+    }, _callee2, undefined);
+  }));
+
+  return function publishImage(_x5, _x6) {
+    return _ref4.apply(this, arguments);
+  };
+}();
 
 var startBot = exports.startBot = function startBot() {
   var settings = (0, _settings.getSettings)(__dirname + '/../settings.json');
@@ -139,8 +229,11 @@ var startBot = exports.startBot = function startBot() {
   listener.on('error', function (err) {
     return console.log(err);
   });
-
   // listener.on('heartbeat', msg => console.log('Dadoum.'));
+
+  setInterval(function () {
+    return publishImage(instance, settings);
+  }, 4 * 60 * 60 * 1000);
 
   console.log('Listening...');
 };
